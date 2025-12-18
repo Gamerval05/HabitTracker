@@ -2,14 +2,14 @@ import Foundation
 
 final class HabitListViewModel {
 
+    private let storage: HabitStorageProtocol
+
     enum SortType {
         case byCompletion
         case byStreak
     }
 
     private(set) var sortType: SortType = .byCompletion
-
-    private let storageKey = "habits_storage"
 
     private(set) var habits: [Habit] = []
 
@@ -32,6 +32,11 @@ final class HabitListViewModel {
         }
     }
 
+    init(storage: HabitStorageProtocol = HabitStorage()) {
+        self.storage = storage
+        self.habits = storage.loadHabits()
+    }
+
     // MARK: - Public API
 
     func numberOfHabits() -> Int {
@@ -45,13 +50,13 @@ final class HabitListViewModel {
     func addHabit(title: String) {
         let habit = Habit(title: title)
         habits.append(habit)
-        saveHabits()
+        storage.saveHabits(habits)
     }
 
     func deleteHabit(at index: Int) {
         let id = sortedHabits[index].id
         habits.removeAll { $0.id == id }
-        saveHabits()
+        storage.saveHabits(habits)
     }
 
     func toggleHabitCompleted(at index: Int) {
@@ -71,13 +76,13 @@ final class HabitListViewModel {
         }
 
         habits[realIndex] = habit
-        saveHabits()
+        storage.saveHabits(habits)
     }
 
     func updateHabit(_ habit: Habit) {
         guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
         habits[index] = habit
-        saveHabits()
+        storage.updateHabit(habit)
     }
 
     func progress() -> Float {
@@ -88,20 +93,5 @@ final class HabitListViewModel {
 
     func changeSort(to type: SortType) {
         sortType = type
-    }
-
-    // MARK: - Persistence
-
-    func loadHabits() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else { return }
-        if let decoded = try? JSONDecoder().decode([Habit].self, from: data) {
-            habits = decoded
-        }
-    }
-
-    private func saveHabits() {
-        if let data = try? JSONEncoder().encode(habits) {
-            UserDefaults.standard.set(data, forKey: storageKey)
-        }
     }
 }

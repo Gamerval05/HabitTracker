@@ -12,7 +12,6 @@ final class HabitListViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupTableView()
-        viewModel.loadHabits()
         updateProgress()
     }
 

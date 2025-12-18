@@ -9,15 +9,16 @@ import Foundation
 
 final class HabitDetailViewModel {
 
-    // MARK: - Properties
     private var habit: Habit
+    private let storage: HabitStorageProtocol
 
-    // MARK: - Init
-    init(habit: Habit) {
+    var onHabitUpdated: ((Habit) -> Void)?
+
+    init(habit: Habit, storage: HabitStorageProtocol = HabitStorage()) {
         self.habit = habit
+        self.storage = storage
     }
 
-    // MARK: - Data for View
     var titleText: String {
         habit.title
     }
@@ -30,19 +31,10 @@ final class HabitDetailViewModel {
         "🔥 \(habit.streak) дней"
     }
 
-    // MARK: - Actions
     func toggleCompletion() {
-        if habit.isCompleted {
-            habit.isCompleted = false
-            habit.streak = max(0, habit.streak - 1)
-        } else {
-            habit.isCompleted = true
-            habit.streak += 1
-        }
-    }
-
-    // MARK: - Output
-    func currentHabit() -> Habit {
-        habit
+        habit.isCompleted.toggle()
+        habit.streak = habit.isCompleted ? habit.streak + 1 : max(0, habit.streak - 1)
+        storage.updateHabit(habit)
+        onHabitUpdated?(habit)
     }
 }

@@ -31,6 +31,7 @@ final class HabitDetailViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupUI()
+        actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         bind()
     }
 
@@ -88,12 +89,16 @@ final class HabitDetailViewController: UIViewController {
         statusLabel.text = viewModel.statusText
         streakLabel.text = viewModel.streakText
 
-        actionButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        viewModel.onHabitUpdated = { [weak self] updatedHabit in
+            guard let self = self else { return }
+            self.titleLabel.text = self.viewModel.titleText
+            self.statusLabel.text = self.viewModel.statusText
+            self.streakLabel.text = self.viewModel.streakText
+            self.onHabitUpdated?(updatedHabit)
+        }
     }
 
     @objc private func buttonTapped() {
         viewModel.toggleCompletion()
-        onHabitUpdated?(viewModel.currentHabit())
-        bind()
     }
 }
